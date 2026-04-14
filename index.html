@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Traductor de Voz EN↔ES</title>
+    <title>Traductor de Voz Multilingüe</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             padding: 40px;
-            max-width: 500px;
+            max-width: 550px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
@@ -40,98 +40,87 @@
         .subtitle {
             text-align: center;
             color: #666;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             font-size: 14px;
         }
 
-        .status {
-            text-align: center;
-            padding: 15px;
-            border-radius: 10px;
+        .lang-selector-container {
             margin-bottom: 20px;
-            font-weight: 500;
-            transition: all 0.3s;
+            text-align: center;
         }
 
-        .status.idle {
-            background: #f0f0f0;
+        .lang-selector-label {
+            font-size: 12px;
             color: #666;
-        }
-
-        .status.listening {
-            background: #fef3c7;
-            color: #92400e;
-            animation: pulse 1.5s infinite;
-        }
-
-        .status.translating {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .status.speaking {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .btn {
-            width: 100%;
-            padding: 20px;
-            border: none;
-            border-radius: 15px;
-            font-size: 18px;
+            margin-bottom: 10px;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .btn-primary {
+        .lang-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .lang-btn {
+            padding: 10px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #6b7280;
+        }
+
+        .lang-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .lang-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-color: #667eea;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            display: none;
         }
 
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .output {
+        .output-box {
             background: #f9fafb;
             border-radius: 10px;
             padding: 20px;
-            min-height: 100px;
-            margin-bottom: 20px;
+            min-height: 80px;
+            margin-bottom: 15px;
         }
 
         .output-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .output-text {
             color: #1f2937;
             font-size: 16px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .output-text.empty {
@@ -139,13 +128,22 @@
             font-style: italic;
         }
 
+        .output-text[contenteditable="true"] {
+            border: 2px solid #667eea;
+            background: #f0f9ff;
+            outline: none;
+            cursor: text;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
         .lang-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
         }
 
         .lang-badge.es {
@@ -158,333 +156,488 @@
             color: #1e40af;
         }
 
-        .error {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: none;
+        .lang-badge.fr {
+            background: #e0e7ff;
+            color: #3730a3;
         }
 
-        .instructions {
-            background: #f0f9ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 5px;
-            font-size: 13px;
-            color: #374151;
-            line-height: 1.6;
+        .lang-badge.ar {
+            background: #fce7f3;
+            color: #831843;
         }
 
-        .instructions strong {
+        .edit-btn, .save-btn, .repeat-btn, .retranslate-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .edit-btn {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .edit-btn:hover {
+            background: #bfdbfe;
+        }
+
+        .save-btn {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .save-btn:hover {
+            background: #bbf7d0;
+        }
+
+        .repeat-btn {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .repeat-btn:hover {
+            background: #bbf7d0;
+        }
+
+        .retranslate-btn {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .retranslate-btn:hover {
+            background: #fde68a;
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .main-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-btn:active {
+            transform: translateY(0);
+        }
+
+        .main-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-btn.recording {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .export-btn {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            background: white;
             color: #667eea;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .export-btn:hover {
+            background: #f0f9ff;
+            transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎤 Traductor de Voz</h1>
-        <p class="subtitle">Español ↔ English • 100% Gratis</p>
+        <p class="subtitle">Español ↔ English ↔ Français ↔ العربية</p>
 
-        <div class="status idle" id="status">Presiona el botón y habla</div>
+        <div class="lang-selector-container" id="input-lang-selector">
+            <div class="lang-selector-label">Hablar en:</div>
+            <div class="lang-buttons">
+                <button class="lang-btn active" data-lang="es" onclick="selectInputLang('es')">🇪🇸 ES</button>
+                <button class="lang-btn" data-lang="en" onclick="selectInputLang('en')">🇬🇧 EN</button>
+                <button class="lang-btn" data-lang="fr" onclick="selectInputLang('fr')">🇫🇷 FR</button>
+                <button class="lang-btn" data-lang="ar" onclick="selectInputLang('ar')">🇸🇦 AR</button>
+            </div>
+        </div>
+
+        <div class="lang-selector-container" id="target-lang-selector">
+            <div class="lang-selector-label">Traducir a:</div>
+            <div class="lang-buttons">
+                <button class="lang-btn" data-lang="es" onclick="selectTargetLang('es')">🇪🇸 ES</button>
+                <button class="lang-btn active" data-lang="en" onclick="selectTargetLang('en')">🇬🇧 EN</button>
+                <button class="lang-btn" data-lang="fr" onclick="selectTargetLang('fr')">🇫🇷 FR</button>
+                <button class="lang-btn" data-lang="ar" onclick="selectTargetLang('ar')">🇸🇦 AR</button>
+            </div>
+        </div>
 
         <div class="error" id="error"></div>
 
-        <div class="output">
+        <div class="output-box">
             <div class="output-label">
-                LO QUE DIJISTE
-                <span class="lang-badge" id="inputLang"></span>
+                LO QUE DIJISTE<span class="lang-badge" id="inputLang"></span>
+                <button class="edit-btn" id="editBtn" onclick="toggleEdit()" style="display:none;">✏️ Editar</button>
+                <button class="save-btn" id="saveBtn" onclick="saveEdit()" style="display:none;">💾 Guardar</button>
+                <button class="retranslate-btn" id="retranslateBtn" onclick="retranslate()" style="display:none;">🔄 Re-traducir</button>
             </div>
-            <div class="output-text empty" id="inputText">Esperando...</div>
+            <div class="output-text empty" id="inputText" contenteditable="false">Esperando...</div>
         </div>
 
-        <div class="output">
+        <div class="output-box">
             <div class="output-label">
-                TRADUCCIÓN
-                <span class="lang-badge" id="outputLang"></span>
+                TRADUCCIÓN<span class="lang-badge" id="outputLang"></span>
+                <button class="repeat-btn" id="repeatBtn" onclick="repeatAudio()" style="display:none;">🔊 Repetir</button>
             </div>
             <div class="output-text empty" id="outputText">Esperando...</div>
         </div>
 
-        <button class="btn btn-primary" id="startBtn">
-            🎤 Click para empezar a hablar
+        <button class="main-btn" id="mainBtn" onclick="toggleRecord()">
+            🎤 Click para hablar
         </button>
 
-        <div class="instructions">
-            <strong>Cómo usar:</strong><br>
-            1. Click en el botón para EMPEZAR a grabar<br>
-            2. Habla todo lo que quieras (con pausas incluidas)<br>
-            3. Click de nuevo para PARAR y traducir<br>
-            4. Escucha la traducción automática
-        </div>
+        <button class="export-btn" id="exportBtn" onclick="exportToPDF()" style="display:none;">
+            📄 Exportar conversación a PDF
+        </button>
     </div>
 
     <script>
-        // UI elements
-        const statusEl = document.getElementById('status');
-        const errorEl = document.getElementById('error');
-        const inputTextEl = document.getElementById('inputText');
-        const outputTextEl = document.getElementById('outputText');
-        const inputLangEl = document.getElementById('inputLang');
-        const outputLangEl = document.getElementById('outputLang');
-        const startBtn = document.getElementById('startBtn');
-
-        // Speech recognition setup
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        // Global state
+        let isRecording = false;
+        let inputLang = 'es';
+        let targetLang = 'en';
         let recognition = null;
-
-        // Speech synthesis setup
+        let finalTranscript = '';
+        let micPermissionGranted = false;
+        let lastTranslation = null;
+        let lastInputText = ''; // Store last input for retranslation
+        let conversationHistory = [];
         const synth = window.speechSynthesis;
 
-        // State
-        let isRecording = false;
-        let microphonePermissionGranted = false;
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-        // Check and request microphone permission
-        async function requestMicrophonePermission() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Stop the stream immediately, we just needed permission
-                stream.getTracks().forEach(track => track.stop());
-                return true;
-            } catch (error) {
-                if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-                    showError('⚠️ Necesitas dar permiso al micrófono. Haz clic en "Permitir" cuando te lo pida el navegador.');
-                } else if (error.name === 'NotFoundError') {
-                    showError('⚠️ No se encontró ningún micrófono. Conecta uno e intenta de nuevo.');
-                } else {
-                    showError('⚠️ Error de micrófono: ' + error.message);
+        function selectInputLang(lang) {
+            inputLang = lang;
+            const inputButtons = document.querySelectorAll('#input-lang-selector .lang-btn');
+            inputButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
                 }
-                return false;
+            });
+            
+            if (recognition) {
+                const langCodes = {es: 'es-ES', en: 'en-US', fr: 'fr-FR', ar: 'ar-SA'};
+                recognition.lang = langCodes[lang];
             }
         }
 
-        // Initialize speech recognition
+        function selectTargetLang(lang) {
+            targetLang = lang;
+            const targetButtons = document.querySelectorAll('#target-lang-selector .lang-btn');
+            targetButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function showError(msg) {
+            const errorEl = document.getElementById('error');
+            errorEl.textContent = msg;
+            errorEl.style.display = 'block';
+            setTimeout(() => errorEl.style.display = 'none', 5000);
+        }
+
+        function toggleEdit() {
+            const inputTextEl = document.getElementById('inputText');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            inputTextEl.contentEditable = 'true';
+            inputTextEl.focus();
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            
+            const range = document.createRange();
+            const sel = window.getSelection();
+            range.selectNodeContents(inputTextEl);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        function saveEdit() {
+            const inputTextEl = document.getElementById('inputText');
+            const editBtn = document.getElementById('editBtn');
+            const saveBtn = document.getElementById('saveBtn');
+            
+            inputTextEl.contentEditable = 'false';
+            editBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'none';
+            
+            const editedText = inputTextEl.textContent.trim();
+            if (editedText) {
+                lastInputText = editedText;
+                translate(editedText, inputLang);
+            }
+        }
+
+        function repeatAudio() {
+            if (lastTranslation) {
+                speak(lastTranslation.text, lastTranslation.lang);
+            }
+        }
+
+        function retranslate() {
+            if (lastInputText) {
+                translate(lastInputText, inputLang);
+            } else {
+                showError('No hay texto para re-traducir');
+            }
+        }
+
+        function exportToPDF() {
+            if (conversationHistory.length === 0) {
+                showError('No hay conversaciones para exportar');
+                return;
+            }
+
+            const langNames = {es: 'Español', en: 'English', fr: 'Français', ar: 'العربية'};
+            const langFlags = {es: '🇪🇸', en: '🇬🇧', fr: '🇫🇷', ar: '🇸🇦'};
+            
+            let html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">';
+            html += '<title>Historial de Conversación</title>';
+            html += '<style>body{font-family:sans-serif;max-width:800px;margin:20px auto;padding:20px}';
+            html += 'h1{color:#667eea;text-align:center}.conversation{background:#f9fafb;padding:15px;margin:15px 0;border-left:4px solid #667eea}';
+            html += '.message{margin:10px 0}.lang{background:#e0e7ff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}';
+            html += '.print-btn{position:fixed;top:20px;right:20px;background:#667eea;color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer}';
+            html += '@media print{.print-btn{display:none}}</style></head><body>';
+            html += '<button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>';
+            html += '<h1>🎤 Historial de Conversación</h1>';
+            html += '<p style="text-align:center;color:#666">📅 ' + new Date().toLocaleDateString('es-ES') + ' | 💬 ' + conversationHistory.length + ' traducciones</p>';
+
+            conversationHistory.forEach((item, index) => {
+                html += '<div class="conversation">';
+                html += '<div style="color:#666;font-size:12px;margin-bottom:10px">#' + (index + 1) + ' - ' + item.timestamp.toLocaleTimeString('es-ES') + '</div>';
+                html += '<div class="message"><span class="lang">' + langFlags[item.inputLang] + ' ' + langNames[item.inputLang] + '</span> ' + item.input + '</div>';
+                html += '<div style="text-align:center;color:#9ca3af;margin:8px 0">↓</div>';
+                html += '<div class="message"><span class="lang">' + langFlags[item.outputLang] + ' ' + langNames[item.outputLang] + '</span> ' + item.output + '</div>';
+                html += '</div>';
+            });
+
+            html += '</body></html>';
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
+        async function translate(text, sourceLang) {
+            try {
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang}|${targetLang}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.responseStatus === 200) {
+                    const translation = data.responseData.translatedText;
+                    const langLabels = {es: 'ES', en: 'EN', fr: 'FR', ar: 'AR'};
+                    
+                    document.getElementById('outputText').textContent = translation;
+                    document.getElementById('outputText').classList.remove('empty');
+                    document.getElementById('outputLang').textContent = langLabels[targetLang];
+                    document.getElementById('outputLang').className = `lang-badge ${targetLang}`;
+                    
+                    lastTranslation = { text: translation, lang: targetLang };
+                    
+                    conversationHistory.push({
+                        timestamp: new Date(),
+                        input: text,
+                        inputLang: sourceLang,
+                        output: translation,
+                        outputLang: targetLang
+                    });
+                    
+                    document.getElementById('repeatBtn').style.display = 'inline-block';
+                    
+                    if (conversationHistory.length > 0) {
+                        document.getElementById('exportBtn').style.display = 'block';
+                    }
+                    
+                    speak(translation, targetLang);
+                }
+            } catch (error) {
+                showError('Error al traducir. Verifica tu conexión.');
+            }
+        }
+
+        function speak(text, lang) {
+            synth.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            const langCodes = {es: 'es-ES', en: 'en-US', fr: 'fr-FR', ar: 'ar-SA'};
+            utterance.lang = langCodes[lang];
+            utterance.rate = 0.65;
+            
+            const voices = synth.getVoices();
+            const preferredVoice = voices.find(voice => voice.lang.startsWith(lang));
+            
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            } else if (lang === 'ar') {
+                showError('⚠️ Tu navegador no tiene voces en árabe instaladas.');
+                return;
+            }
+            
+            utterance.onerror = (e) => {
+                if (lang === 'ar') {
+                    showError('⚠️ Error al reproducir árabe.');
+                }
+            };
+            
+            synth.speak(utterance);
+        }
+
         function initRecognition() {
             if (!SpeechRecognition) {
-                showError('Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge.');
+                showError('Tu navegador no soporta reconocimiento de voz');
                 return null;
             }
 
             const rec = new SpeechRecognition();
-            rec.continuous = true; // CHANGED: continuous recording
-            rec.interimResults = true; // CHANGED: show interim results
+            rec.continuous = true;
+            rec.interimResults = true;
             
-            // Auto-detect language (will try both)
-            rec.lang = 'es-ES';
-
-            let finalTranscript = '';
-            let interimTranscript = '';
+            const langCodes = {es: 'es-ES', en: 'en-US', fr: 'fr-FR', ar: 'ar-SA'};
+            rec.lang = langCodes[inputLang];
+            rec.maxAlternatives = 3;
 
             rec.onstart = () => {
-                updateStatus('listening', '🎤 Escuchando... (Click de nuevo para parar)');
-                startBtn.textContent = '⏹️ Click para parar y traducir';
-                startBtn.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                document.getElementById('mainBtn').classList.add('recording');
+                document.getElementById('mainBtn').textContent = '⏹️ Click para parar';
                 finalTranscript = '';
-                interimTranscript = '';
-                inputTextEl.textContent = 'Escuchando...';
-                inputTextEl.classList.remove('empty');
             };
 
             rec.onresult = (event) => {
-                interimTranscript = '';
+                let interim = '';
+                finalTranscript = '';
                 
-                for (let i = event.resultIndex; i < event.results.length; i++) {
+                for (let i = 0; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
                     } else {
-                        interimTranscript += transcript;
+                        interim += transcript;
                     }
                 }
                 
-                // Show what's being captured in real-time
-                const displayText = finalTranscript + (interimTranscript ? `<span style="color: #999;">${interimTranscript}</span>` : '');
-                inputTextEl.innerHTML = displayText || 'Escuchando...';
+                const display = finalTranscript + (interim ? `<span style="color:#999">${interim}</span>` : '');
+                document.getElementById('inputText').innerHTML = display || 'Escuchando...';
+            };
+
+            rec.onend = () => {
+                isRecording = false;
+                document.getElementById('mainBtn').classList.remove('recording');
+                document.getElementById('mainBtn').textContent = '🎤 Click para hablar';
+                
+                if (finalTranscript.trim()) {
+                    const langLabels = {es: 'ES', en: 'EN', fr: 'FR', ar: 'AR'};
+                    
+                    lastInputText = finalTranscript.trim();
+                    document.getElementById('inputText').textContent = lastInputText;
+                    document.getElementById('inputLang').textContent = langLabels[inputLang];
+                    document.getElementById('inputLang').className = `lang-badge ${inputLang}`;
+                    
+                    document.getElementById('editBtn').style.display = 'inline-block';
+                    document.getElementById('retranslateBtn').style.display = 'inline-block';
+                    
+                    translate(lastInputText, inputLang);
+                }
             };
 
             rec.onerror = (event) => {
-                if (event.error === 'not-allowed') {
-                    showError('⚠️ Permiso de micrófono denegado. Actualiza la página y permite el acceso al micrófono.');
-                } else if (event.error === 'no-speech') {
-                    // Ignore no-speech error in continuous mode
-                    return;
-                } else if (event.error === 'audio-capture') {
-                    showError('⚠️ No se puede acceder al micrófono. Verifica que esté conectado.');
-                } else if (event.error === 'aborted') {
-                    // Normal stop, don't show error
-                    return;
-                } else {
-                    showError(`Error: ${event.error}`);
-                }
-                resetButton();
-            };
-
-            rec.onend = async () => {
-                isRecording = false;
-                resetButton();
-                
-                // Process the final transcript
-                if (finalTranscript.trim()) {
-                    const detectedLang = detectLanguage(finalTranscript);
-                    
-                    inputTextEl.textContent = finalTranscript.trim();
-                    inputTextEl.classList.remove('empty');
-                    
-                    inputLangEl.textContent = detectedLang === 'es' ? 'ES' : 'EN';
-                    inputLangEl.className = `lang-badge ${detectedLang}`;
-                    
-                    await translate(finalTranscript.trim(), detectedLang);
-                } else {
-                    inputTextEl.textContent = 'No se detectó voz';
-                    inputTextEl.classList.add('empty');
-                    updateStatus('idle', 'Click para empezar a hablar');
+                if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                    showError('Error: ' + event.error);
                 }
             };
 
             return rec;
         }
 
-        // Reset button to initial state
-        function resetButton() {
-            startBtn.textContent = '🎤 Click para empezar a hablar';
-            startBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        }
-
-        // Simple language detection
-        function detectLanguage(text) {
-            const spanishWords = ['el', 'la', 'de', 'que', 'y', 'a', 'en', 'un', 'ser', 'se', 'no', 'haber', 'por', 'con', 'su', 'para', 'como', 'estar', 'tener', 'le', 'lo', 'todo', 'pero', 'más', 'hacer', 'o', 'poder', 'decir', 'este', 'ir', 'otro', 'ese', 'la', 'si', 'me', 'ya', 'ver', 'porque', 'dar', 'cuando', 'él', 'muy', 'sin', 'vez', 'mucho', 'saber', 'qué', 'sobre', 'mi', 'alguno', 'mismo', 'yo', 'también', 'hasta', 'año', 'dos', 'querer', 'entre', 'así', 'primero', 'desde', 'grande', 'eso', 'ni', 'nos', 'llegar', 'pasar', 'tiempo', 'ella', 'sí', 'día', 'uno', 'bien', 'poco', 'deber', 'entonces', 'poner', 'cosa', 'tanto', 'hombre', 'parecer', 'nuestro', 'tan', 'donde', 'ahora', 'parte', 'después', 'vida', 'quedar', 'siempre', 'creer', 'hablar', 'llevar', 'dejar', 'nada', 'cada', 'seguir', 'menos', 'nuevo', 'encontrar', 'algo', 'solo', 'decir', 'tres', 'estado', 'tener', 'durante', 'todo', 'hacer', 'trabajar', 'saber', 'ciudad', 'cual', 'historia', 'tiempo', 'ciento', 'mismo', 'trabajo', 'verdad', 'conocer', 'persona'];
-            
-            const words = text.toLowerCase().split(/\s+/);
-            const spanishCount = words.filter(word => spanishWords.includes(word)).length;
-            
-            // If more than 20% are common Spanish words, it's Spanish
-            return (spanishCount / words.length > 0.2) ? 'es' : 'en';
-        }
-
-        // Translate using free MyMemory Translation API
-        async function translate(text, sourceLang) {
-            updateStatus('translating', '🔄 Traduciendo...');
-            
-            const targetLang = sourceLang === 'es' ? 'en' : 'es';
-            const langPair = `${sourceLang}|${targetLang}`;
-            
-            try {
-                // Using MyMemory Translation API (free, no API key needed)
-                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.responseStatus === 200 && data.responseData) {
-                    const translation = data.responseData.translatedText;
-                    
-                    outputTextEl.textContent = translation;
-                    outputTextEl.classList.remove('empty');
-                    
-                    outputLangEl.textContent = targetLang.toUpperCase();
-                    outputLangEl.className = `lang-badge ${targetLang}`;
-                    
-                    // Speak the translation
-                    speak(translation, targetLang);
-                } else {
-                    showError('Error al traducir. Intenta de nuevo.');
-                    updateStatus('idle', 'Presiona el botón y habla');
-                }
-                
-            } catch (error) {
-                showError('Error al traducir. Verifica tu conexión.');
-                updateStatus('idle', 'Presiona el botón y habla');
-                console.error(error);
-            }
-        }
-
-        // Speak text using Web Speech API
-        function speak(text, lang) {
-            updateStatus('speaking', '🔊 Reproduciendo traducción...');
-            
-            // Cancel any ongoing speech
-            synth.cancel();
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang === 'es' ? 'es-ES' : 'en-US';
-            utterance.rate = 0.75; // Slower for better comprehension
-            utterance.pitch = 1;
-            
-            utterance.onend = () => {
-                updateStatus('idle', 'Presiona el botón y habla');
-            };
-            
-            utterance.onerror = () => {
-                updateStatus('idle', 'Presiona el botón y habla');
-            };
-            
-            synth.speak(utterance);
-        }
-
-        // Update status
-        function updateStatus(state, message) {
-            statusEl.className = `status ${state}`;
-            statusEl.textContent = message;
-        }
-
-        // Show error
-        function showError(message) {
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
-        }
-
-        // Button toggle handler
-        async function toggleRecording() {
-            // Request permission on first use
-            if (!microphonePermissionGranted) {
-                startBtn.disabled = true;
-                startBtn.textContent = '⏳ Solicitando permiso...';
-                const granted = await requestMicrophonePermission();
-                startBtn.disabled = false;
-                startBtn.textContent = '🎤 Click para empezar a hablar';
-                
-                if (!granted) {
-                    return;
-                }
-                microphonePermissionGranted = true;
-            }
-            
+        async function toggleRecord() {
             if (!recognition) {
                 recognition = initRecognition();
                 if (!recognition) return;
             }
-            
+
             if (!isRecording) {
-                // Start recording
-                errorEl.style.display = 'none';
                 isRecording = true;
                 try {
                     recognition.start();
                 } catch (error) {
-                    showError('Error al iniciar reconocimiento: ' + error.message);
+                    showError('Error al iniciar grabación');
                     isRecording = false;
-                    resetButton();
                 }
             } else {
-                // Stop recording
                 recognition.stop();
             }
         }
 
-        // Click handler
-        startBtn.addEventListener('click', toggleRecording);
-
-        // Initialize
-        if (!SpeechRecognition) {
-            showError('⚠️ Tu navegador no soporta reconocimiento de voz. Usa Chrome o Edge en computadora o móvil.');
-            startBtn.disabled = true;
+        async function requestMicPermission() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+                stream.getTracks().forEach(track => track.stop());
+                micPermissionGranted = true;
+                
+                if (window.location.protocol === 'file:') {
+                    showError('⚠️ Para evitar pedir permisos repetidamente, usa Vercel o un servidor local');
+                }
+            } catch (error) {
+                if (window.location.protocol === 'file:') {
+                    showError('⚠️ Los permisos no funcionan bien en file://. Usa Vercel o servidor local');
+                } else {
+                    showError('⚠️ Necesitas dar permiso al micrófono');
+                }
+                document.getElementById('mainBtn').disabled = true;
+            }
         }
+
+        window.addEventListener('load', () => {
+            if (!SpeechRecognition) {
+                showError('⚠️ Usa Chrome o Edge para reconocimiento de voz');
+                document.getElementById('mainBtn').disabled = true;
+            } else {
+                requestMicPermission();
+            }
+            
+            if (synth.onvoiceschanged !== undefined) {
+                synth.onvoiceschanged = () => {
+                    const voices = synth.getVoices();
+                    console.log('Available voices:', voices.map(v => v.lang + ' - ' + v.name));
+                };
+            }
+            synth.getVoices();
+        });
     </script>
 </body>
 </html>
