@@ -525,20 +525,24 @@
             }
 
             const rec = new SpeechRecognition();
-            rec.continuous = true;
-            rec.interimResults = true;
+            
+            // iOS Safari compatibility settings
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            rec.continuous = !isIOS; // iOS works better with continuous=false
+            rec.interimResults = !isIOS; // iOS has issues with interim results
             
             const langCodes = {es: 'es-ES', en: 'en-US', fr: 'fr-FR', ar: 'ar-SA'};
             rec.lang = langCodes[inputLang];
-            rec.maxAlternatives = 3;
 
             rec.onstart = () => {
+                console.log('Recognition started');
                 document.getElementById('mainBtn').classList.add('recording');
                 document.getElementById('mainBtn').textContent = '⏹️ Click para parar';
                 finalTranscript = '';
             };
 
             rec.onresult = (event) => {
+                console.log('Got results:', event.results.length);
                 let interim = '';
                 finalTranscript = '';
                 
@@ -556,6 +560,7 @@
             };
 
             rec.onend = () => {
+                console.log('Recognition ended');
                 isRecording = false;
                 document.getElementById('mainBtn').classList.remove('recording');
                 document.getElementById('mainBtn').textContent = '🎤 Click para hablar';
@@ -572,11 +577,22 @@
                     document.getElementById('retranslateBtn').style.display = 'inline-block';
                     
                     translate(lastInputText, inputLang);
+                } else {
+                    showError('No se detectó voz. Habla más cerca del micrófono.');
                 }
             };
 
             rec.onerror = (event) => {
-                if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                console.error('Recognition error:', event.error);
+                isRecording = false;
+                document.getElementById('mainBtn').classList.remove('recording');
+                document.getElementById('mainBtn').textContent = '🎤 Click para hablar';
+                
+                if (event.error === 'not-allowed') {
+                    showError('⚠️ Permiso de micrófono denegado. Verifica los permisos en Ajustes > Safari > Micrófono');
+                } else if (event.error === 'no-speech') {
+                    showError('No se detectó voz. Intenta hablar más fuerte o más cerca.');
+                } else if (event.error !== 'aborted') {
                     showError('Error: ' + event.error);
                 }
             };
@@ -593,9 +609,12 @@
             if (!isRecording) {
                 isRecording = true;
                 try {
+                    // iOS Safari requires a small delay before starting
+                    await new Promise(resolve => setTimeout(resolve, 100));
                     recognition.start();
                 } catch (error) {
-                    showError('Error al iniciar grabación');
+                    console.error('Start error:', error);
+                    showError('Error al iniciar grabación: ' + error.message);
                     isRecording = false;
                 }
             } else {
