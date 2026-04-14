@@ -1,0 +1,19 @@
+{
+  "name": "traductor-voz-es-en",
+  "version": "1.0.0",
+  "description": "Traductor de voz gratuito Español ↔ English con reconocimiento de voz y síntesis",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 iniciar-traductor.py"
+  },
+  "keywords": [
+    "translator",
+    "voice",
+    "spanish",
+    "english",
+    "speech-recognition",
+    "text-to-speech"
+  ],
+  "author": "",
+  "license": "MIT"
+}
