@@ -410,7 +410,7 @@
             
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang === 'es' ? 'es-ES' : 'en-US';
-            utterance.rate = 0.9;
+            utterance.rate = 0.75; // Slower for better comprehension
             utterance.pitch = 1;
             
             utterance.onend = () => {
